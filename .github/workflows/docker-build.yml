@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*'  # Optional: triggers also when you tag releases like v1.0
+      - 'v*'  # optional: build on tags like v1.0.0
 
 jobs:
   build:
@@ -24,6 +24,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Extract repository name
+        id: repo
+        run: |
+          echo "repo_name=$(echo '${{ github.repository }}' | awk -F'/' '{print $2}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -31,5 +36,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/myapp:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo.outputs.repo_name }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.repo.outputs.repo_name }}:${{ github.sha }}
